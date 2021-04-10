@@ -1,65 +1,80 @@
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import React from 'react';
+import { getNPhases } from '../utils/phases';
+
+
 
 export default function Home() {
+  const [playerCount, setPlayerCount] = React.useState(2);
+
+  const [phases, setPhases] = React.useState([]);
+
+  const handleAddPlayer = () => {
+    // setPlayers(players => [...players, {
+    //   name: `Player ${players.length + 1}`
+    // }]);
+
+    setPlayerCount((c) => c + 1);
+  };
+
+  const handlePlayerNameChange = (index) => (e) => {
+    console.log(e);
+    setPlayers(players => players.map((p, i) => i === index ? { name: e.target.value } : p));
+  };
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+
+    const data = new FormData(event.currentTarget);
+
+    const phasesCount = data.get('phaseCount');
+    const players = data.getAll('playerName[]');
+
+    const phases = getNPhases(phasesCount);
+    console.log(phases);
+    setPhases(phases);
+  }
   return (
-    <div className={styles.container}>
+    <div >
       <Head>
-        <title>Create Next App</title>
+        <title>Phase 10</title>
         <link rel="icon" href="/favicon.ico" />
+        {/* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.37/dist/themes/base.css" />
+        <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.37/dist/shoelace.js"></script> */}
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+      <main>
+        <h1>
+          Phase 10
         </h1>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+        <form onSubmit={handleFormSubmit}>
+          <label>
+            Phases count
+          <input name="phaseCount" placeholder="3" />
+          </label>
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+          {[...Array(playerCount)].map((_p, index) => (
+            <div key={index}>
+              <label>
+                {`Player ${index}`}
+                <input placeholder="Enter a name" name="playerName[]" />
+              </label>
+            </div>
+          ))}
+          <button onClick={handleAddPlayer}>Add player</button>
+          <button type="submit">Start game</button>
+        </form>
+        {phases}
+        {phases.map((p, index) => {
+          <div key={index}>
+            {p}
+          </div>
+        })}
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
       </main>
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
+
+    </div >
   )
 }
