@@ -35,7 +35,7 @@ export default function Home() {
     setPhases(phases);
   }
   return (
-    <div >
+    <div className="font-sans" >
       <Head>
         <title>Phase 10</title>
         <link rel="icon" href="/favicon.ico" />
@@ -44,36 +44,39 @@ export default function Home() {
       </Head>
 
       <main>
-        <h1>
+        <h1 >
           Phase 10
         </h1>
 
-        <form onSubmit={handleFormSubmit}>
-          <label>
-            Phases count
-          <input name="phaseCount" placeholder="3" />
+        <form onSubmit={handleFormSubmit} className="inline-block">
+          <label className="block" >
+            <span>Phases</span>
+            <input type="number" min="1" name="phaseCount" placeholder="3" defaultValue="3" />
           </label>
-
-          {[...Array(playerCount)].map((_p, index) => (
-            <div key={index}>
-              <label>
-                {`Player ${index}`}
-                <input placeholder="Enter a name" name="playerName[]" />
+          <div className="my-4">
+            {[...Array(playerCount)].map((_p, index) => (
+              <label key={index} className="block mb-2">
+                <span>{`Player ${index}`}</span>
+                <input type="text" placeholder="Enter a name" name="playerName[]" />
               </label>
-            </div>
-          ))}
-          <button onClick={handleAddPlayer}>Add player</button>
-          <button type="submit">Start game</button>
-        </form>
-        {phases}
-        {phases.map((p, index) => {
-          <div key={index}>
-            {p}
+            ))}
+            <button onClick={handleAddPlayer} className="mb-4 float-right">Add player</button>
           </div>
-        })}
+          <button className="block w-full" type="submit">Start game</button>
+        </form>
+
+        <section >
+          <h2>Phases</h2>
+          <ul className="inline-block text-left">
+            {phases.map((p, index) => (
+              <li key={index}>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </section>
 
       </main>
-
 
     </div >
   )
