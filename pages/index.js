@@ -34,8 +34,8 @@ export default function Home() {
     event.preventDefault();
 
     const data = new FormData(event.currentTarget);
-    const updates = {};
 
+    event.currentTarget.reset();
     setPlayers(players => {
       const newValues = { ...players };
 
@@ -54,19 +54,18 @@ export default function Home() {
   const playersByPhase = [];
   Object.values(players).forEach(p => playersByPhase[p.currentPhase] = [...(playersByPhase[p.currentPhase] || []), p.name]);
   return (
-    <div className="font-sans" >
+    <div className="font-sans max-w-xs mx-auto mt-12" >
       <Head>
         <title>Phase 10</title>
         <link rel="icon" href="/favicon.ico" />
-        {/* <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.37/dist/themes/base.css" />
-        <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.37/dist/shoelace.js"></script> */}
       </Head>
 
-      <main>
+      <header>
         <h1 >
           Phase 10
         </h1>
-
+      </header>
+      <main>
 
 
         {!phases.length ? <form onSubmit={handlePlayersSubmit} className="inline-block">
@@ -83,50 +82,75 @@ export default function Home() {
             ))}
             <button type="button" onClick={handleAddPlayer} className="mb-4 float-right">Add player</button>
           </div>
-          <button className="block w-full" type="submit">Start game</button>
+          <button className="block w-full primary" type="submit">Start game</button>
         </form> : <>
           <section >
             <h2>Phases</h2>
-            <ol className="inline-block text-left">
+            <ol className="inline-block text-left w-full">
               {phases.map((p, index) => (
-                <li key={index}>
-                  {p} - <b>{(playersByPhase[index + 1] || []).join(',')}</b>
+                <li key={index} className="border border-solid	border-gray-300	 rounded px-6 py-4 mb-2 flex bg-blue-50">
+                  <span className="mr-4 opacity-70 self-center	">{index + 1}.</span>
+                  <span className="flex-1  flex justify-between ">
+                    <div className="flex flex-col	">
+                      {p.split(' + ').map(part => (
+                        <span key={part}>{part}</span>
+                      ))}
+                    </div>
+
+                    <div className="font-bold ml-4 text-right self-center	">
+                      {(playersByPhase[index + 1] || []).map(name => (<div key={name}>{name}</div>))}
+                    </div>
+                  </span>
                 </li>
               ))}
+
             </ol>
+
+
           </section>
 
-          <section>
-            <h2>Scores</h2>
-            <ul className="inline-block text-left">
-              {Object.values(players).map((p) => (<li key={p.name}>
-                {p.name}: phase {p.currentPhase}/{phases.length} - {p.points} pts
-              </li>
-              ))}
-            </ul>
-          </section>
+
           <section>
             <h2>End of phase</h2>
             <form onSubmit={handleScoresSubmit}>
-              <table >
-                <th></th>
-                <th className="whitespace-nowrap">Made it</th>
-                <th>Score</th>
-                {Object.values(players).map((p) => (
-                  <tr key={p.name}>
-                    <td>{p.name}</td>
-                    <td>
-                      <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" />
-                    </td>
-                    <td>
-                      <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" />
-                    </td>
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th className="whitespace-nowrap">Made it</th>
+                    <th className="w-16 text-center">Score</th>
                   </tr>
-                ))}
+                </thead>
+                <tbody>
+                  {Object.values(players).map((p) => (
+                    <tr key={p.name}>
+                      <td>{p.name}</td>
+                      <td className="text-center">
+                        <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" />
+                      </td>
+                      <td className="w-16 text-center">
+                        <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" className="w-16" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
 
-              <button type="submit" className="w-full mt-4" >End phase</button>
+              <button type="submit" className="primary w-full mt-4" >End phase</button>
             </form>
+          </section>
+          <section>
+            <h2>Scores</h2>
+            <table>
+              <tbody>
+                {Object.values(players).map((p) => (
+                  <tr key={p.name}>
+                    <td><b>{p.name}</b></td>
+                    <td> {p.points} pts</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </section>
         </>}
       </main>

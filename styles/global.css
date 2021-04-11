@@ -1,15 +1,19 @@
-main {
-    max-width: 320px;
-    margin: 3rem auto;
-}
 
 button {
     border: 2px solid #4B5563;
-    border-radius: 3px;
     color: #4B5563;
     background: #E5E7EB;
-    padding: 0.5rem 1rem;
+    
     cursor:pointer;
+
+    @apply p-3;
+    @apply rounded;
+}
+
+button.primary{
+    @apply bg-blue-500;
+    @apply text-white;
+    @apply border-0;
 }
 
 button:hover {
@@ -17,17 +21,33 @@ button:hover {
     color:white;
 }
 
+button.primary:hover {
+    @apply bg-blue-600;
+}
+
 input {
-    padding: 0.5rem;
-    border-radius: 3px;
+    @apply p-2;
+    @apply rounded;
     border: 1px solid #4B5563;
-    margin-left: 0.5rem;
 }
 
 label {
     display: flex;
     align-items: center;
 }
+
+label > input {
+    margin-left: 0.5rem;
+}
 label > span {
     flex: 1;
+}
+
+ol, ul{
+    list-style: none;
+    padding: 0;
+}
+
+table {
+    border-spacing: 0.25rem;
 }
