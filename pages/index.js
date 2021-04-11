@@ -18,7 +18,6 @@ export default function Home() {
 
   const handlePlayersSubmit = (event) => {
     event.preventDefault();
-
     const data = new FormData(event.currentTarget);
 
     const phasesCount = data.get('phaseCount');
@@ -82,7 +81,7 @@ export default function Home() {
                 <input type="text" placeholder="Enter a name" name="playerName" defaultValue={`${index ? "Cyril" : "Julien"}`} />
               </label>
             ))}
-            <button onClick={handleAddPlayer} className="mb-4 float-right">Add player</button>
+            <button type="button" onClick={handleAddPlayer} className="mb-4 float-right">Add player</button>
           </div>
           <button className="block w-full" type="submit">Start game</button>
         </form> : <>
