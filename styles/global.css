@@ -1,7 +1,6 @@
 main {
-    max-width: 640px;
+    max-width: 320px;
     margin: 3rem auto;
-    text-align: center;
 }
 
 button {
