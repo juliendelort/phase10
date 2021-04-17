@@ -1,3 +1,13 @@
+# Phase 10 tracker
+Phases generator & score tracker
+
+- Generates random phases
+- Keeps track of who is in which phase
+- Keeps track of scores
+
+Live version: https://phase10.vercel.app/
+
+----
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
