@@ -33,6 +33,7 @@ export function EndPhaseSection({ players, onEndPhase }) {
         setFormData(initFormData);
     };
 
+
     // Disabled if no "move to next phase" checkbox is checked
     const submitDisabled = !Object.values(formData).some(p => p.moveToNextPhase);
 
@@ -54,7 +55,7 @@ export function EndPhaseSection({ players, onEndPhase }) {
                             <tr key={p.name}>
                                 <td>{p.name}</td>
                                 <td className="text-center">
-                                    <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" onChange={handleMoveToNextPhaseChange(p.name)} />
+                                    <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" onInput={handleMoveToNextPhaseChange(p.name)} />
                                 </td>
                                 <td className="w-16 text-center">
                                     <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" className="w-16" onChange={handlePointsChange(p.name)} defaultValue={0} />
