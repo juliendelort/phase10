@@ -4,11 +4,16 @@
 
 @layer base {
     button {
-        @apply text-gray-600 bg-gray-200 border-2 border-solid border-gray-600 p-3 rounded cursor-pointer hover:bg-gray-600 hover:text-white;
+        @apply text-white bg-gray-500 disabled:bg-gray-300 disabled:pointer-events-none	 border-0 p-3 rounded cursor-pointer hover:bg-gray-600 hover:bg-gray-600;
     }
 
+
     button.primary{
-        @apply bg-blue-500 text-white border-0 hover:bg-blue-600;
+        @apply bg-blue-500 disabled:bg-blue-300  text-white border-0 hover:bg-blue-600;
+    }
+
+    button.small{
+        @apply text-xs p-1;
     }
 
     input {
@@ -28,5 +33,9 @@
 
     table {
         border-spacing: 0.25rem;
+    }
+
+    ol {
+        padding: 0;
     }
 }

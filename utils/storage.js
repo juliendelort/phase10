@@ -5,10 +5,11 @@ export function getLocalStorage() {
 
     if (stringData) {
         try {
-            const { formPlayerCount, previousPlayers } = JSON.parse(stringData);
+            const { formPlayerCount, previousPlayers, phasesCount } = JSON.parse(stringData);
             return {
                 formPlayerCount,
-                previousPlayers
+                previousPlayers,
+                phasesCount
             };
         } catch {
         }
@@ -17,11 +18,12 @@ export function getLocalStorage() {
     return null;
 }
 
-export function setLocalStorage(playerNames) {
+export function setLocalStorage(playerNames, phasesCount) {
     if (typeof window !== "undefined") {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
             formPlayerCount: playerNames.length,
-            previousPlayers: playerNames
+            previousPlayers: playerNames,
+            phasesCount
         }));
     }
 }
