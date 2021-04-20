@@ -125,6 +125,8 @@ export default function Home() {
       <Head>
         <title>Phase 10</title>
         <link rel="icon" href="/favicon.ico" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </Head>
 
       <header>
