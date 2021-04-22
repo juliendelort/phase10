@@ -5,9 +5,9 @@ export function getLocalStorage() {
 
     if (stringData) {
         try {
-            const { formPlayerCount, previousPlayers, phasesCount } = JSON.parse(stringData);
+            const { previousPlayers, phasesCount } = JSON.parse(stringData);
+
             return {
-                formPlayerCount,
                 previousPlayers,
                 phasesCount
             };
@@ -21,7 +21,6 @@ export function getLocalStorage() {
 export function setLocalStorage(playerNames, phasesCount) {
     if (typeof window !== "undefined") {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
-            formPlayerCount: playerNames.length,
             previousPlayers: playerNames,
             phasesCount
         }));
