@@ -58,7 +58,7 @@ export function EndPhaseSection({ players, onEndPhase }) {
                                     <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" onInput={handleMoveToNextPhaseChange(p.name)} />
                                 </td>
                                 <td className="w-16 text-center">
-                                    <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" className="w-16" onChange={handlePointsChange(p.name)} defaultValue={0} />
+                                    <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" className="w-16" onChange={handlePointsChange(p.name)} />
                                 </td>
                             </tr>
                         ))}

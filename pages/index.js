@@ -12,7 +12,7 @@ export default function Home() {
   /**
    * Starting the game
    */
-  const handleStartGame = React.useCallback((phasesCount, playerNames) => {
+  const handleStartGame = React.useCallback((playerNames, phasesCount) => {
     const phases = generateNPhases(phasesCount);
     setPhases(phases);
 
