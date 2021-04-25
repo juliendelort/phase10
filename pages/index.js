@@ -73,7 +73,8 @@ export default function Home() {
     return result;
   }, [players]);
 
-  const showRevertButton = Object.keys(playersByPhase).length > 1; // Show revert button if at least is above phase 1
+  // Show revert button if at least one player is above phase 1
+  const showRevertButton = Object.keys(playersByPhase).some(phase => phase > 1);
 
   // List of phases with players that are in it
   const phasesSection = (
