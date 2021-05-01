@@ -1,47 +1,25 @@
 import React from 'react';
+import { useForm } from "react-hook-form";
 
 
 // Form to end phase (points, who made it)
 export function EndPhaseSection({ players, onEndPhase }) {
-    const [formData, setFormData] = React.useState(initFormData);
+    // const [formData, setFormData] = React.useState(initFormData);
+    const { register, handleSubmit, watch } = useForm();
 
-    function initFormData() {
-        const result = {};
-        Object.values(players).forEach(p => {
-            result[p.name] = { moveToNextPhase: false, points: 0 }
-        });
-
-        return result;
-    }
-
-    const handleMoveToNextPhaseChange = (playerName) => (e) => {
-        const moveToNextPhase = e.currentTarget.checked;
-
-        setFormData(data => ({ ...data, [playerName]: { ...data[playerName], moveToNextPhase } }))
+    const handleEndPhase = (data) => {
+        onEndPhase({ ...data });
     };
 
-    const handlePointsChange = (playerName) => (e) => {
-        const points = parseInt(e.currentTarget.value || '0');
-        setFormData(data => ({ ...data, [playerName]: { ...data[playerName], points } }))
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        e.currentTarget.reset();
-        onEndPhase({ ...formData });
-
-        setFormData(initFormData);
-    };
-
+    const watchAllFields = watch(); // when pass nothing as argument, you are watching everything
 
     // Disabled if no "move to next phase" checkbox is checked
-    const submitDisabled = !Object.values(formData).some(p => p.moveToNextPhase);
-
+    const submitDisabled = !Object.values(watchAllFields).some(p => p.moveToNextPhase);
 
     return (
         <section>
             <h2>End of phase</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(handleEndPhase)}>
                 <table className="w-full">
                     <thead>
                         <tr>
@@ -55,10 +33,10 @@ export function EndPhaseSection({ players, onEndPhase }) {
                             <tr key={p.name}>
                                 <td>{p.name}</td>
                                 <td className="text-center">
-                                    <input type="checkbox" name={`${p.name}[move]`} aria-label="made it" onInput={handleMoveToNextPhaseChange(p.name)} />
+                                    <input type="checkbox" {...register(`${p.name}[moveToNextPhase]`)} aria-label="made it" />
                                 </td>
                                 <td className="w-16 text-center">
-                                    <input type="number" min="0" name={`${p.name}[points]`} arial-label="score" className="w-16" onChange={handlePointsChange(p.name)} />
+                                    <input type="number" min="0"  {...register(`${p.name}[points]`, { setValueAs: v => v ? parseInt(v) : 0 })} arial-label="score" className="w-16" />
                                 </td>
                             </tr>
                         ))}
