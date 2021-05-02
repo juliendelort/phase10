@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 // Form to end phase (points, who made it)
 export function EndPhaseSection({ players, onEndPhase }) {
     // const [formData, setFormData] = React.useState(initFormData);
-    const { register, handleSubmit, watch } = useForm();
+    const { register, handleSubmit, watch, reset } = useForm();
 
     const handleEndPhase = (data) => {
+        reset();
         onEndPhase({ ...data });
     };
 
