@@ -1,102 +1,155 @@
 import Head from 'next/head'
-import React from 'react';
+import * as React from 'react';
 import { generateNPhases } from '../utils/phases';
 import { PreGameForm } from '../components/PreGameForm';
 import { EndPhaseSection } from '../components/EndPhaseSection';
 
+/**
+ * @typedef {{name:string, points:number, currentPhase: number, completedPhases: Array<{moveToNextPhase: boolean, points: number}> }} Player
+ */
+
+/**
+ * @typedef {{phases: string[],players: Record<string, Player>}} GameData
+ */
+
+const localStorageKey = 'phase10-game';
+
+function readLocalStorage() {
+  const defaultValue = { phases: [], players: {} };
+  if (typeof window === 'undefined') {
+    return defaultValue
+  }
+
+  const str = window.localStorage.getItem(localStorageKey);
+  return /** @type {GameData}*/(str ? JSON.parse(str) : defaultValue);
+}
+
+/**
+ * 
+ * @param {Partial<GameData>} gameData 
+ */
+function writeLocalStorage(gameData) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const currentGameData = readLocalStorage();
+  window.localStorage.setItem(localStorageKey, JSON.stringify({ ...currentGameData, ...gameData }));
+}
 
 export default function Home() {
-  const [phases, setPhases] = React.useState([]);
-  const [players, setPlayers] = React.useState({});
+  const [phases, setPhases] = React.useState(() => readLocalStorage().phases);
+
+  const [players, setPlayers] = React.useState(() => readLocalStorage().players);
+
+  /**
+   * 
+   * @param {string[]} phases 
+   */
+  function proxySetPhases(phases) {
+    writeLocalStorage({ phases });
+    setPhases(phases);
+  }
+
+  /**
+   * 
+   * @param {Record<string, Player>} players 
+   */
+  function proxySetPlayers(players) {
+    writeLocalStorage({ players });
+    setPlayers(players);
+  }
 
   /**
    * Starting the game
    */
-  const handleStartGame = React.useCallback((playerNames, phasesCount) => {
+  const handleStartGame = React.useCallback(/** @type {(playerName:string[], phasesCount:number)=>void}*/((playerNames, phasesCount) => {
     const phases = generateNPhases(phasesCount);
-    setPhases(phases);
+    proxySetPhases(phases);
 
+    /** @type {Record<string, Player>} */
     const players = {};
     playerNames.forEach(name => players[name] = { name, points: 0, currentPhase: 1, completedPhases: [] });
-    setPlayers(players);
-  }, []);
+    proxySetPlayers(players);
+  }), []);
   /**
    * End a phase: update players scores and current phase
    */
-  const handleEndPhase = React.useCallback((phaseData) => {
+  const handleEndPhase = React.useCallback(/**@type {(phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void}*/((phaseData) => {
 
-    setPlayers(players => {
-      const newValues = { ...players };
+    const newValues = { ...players };
 
-      Object.values(players).forEach((p) => {
-        const { moveToNextPhase, points } = phaseData[p.name];
+    Object.values(players).forEach((p) => {
+      const { moveToNextPhase, points } = phaseData[p.name];
 
-        if (moveToNextPhase) {
-          newValues[p.name].currentPhase++;
-        }
-        newValues[p.name].points += points;
+      if (moveToNextPhase) {
+        newValues[p.name].currentPhase++;
+      }
+      newValues[p.name].points += points;
 
-        newValues[p.name].completedPhases.push({ moveToNextPhase, points });
-      });
-      return newValues;
+      newValues[p.name].completedPhases.push({ moveToNextPhase, points });
     });
-  }, []);
+    proxySetPlayers(newValues);
+  }), []);
 
   /** Un-apply last phase */
   const handleRevertPhase = () => {
-    setPlayers(players => {
-      const newValues = { ...players };
+    const newValues = { ...players };
 
-      Object.values(players).forEach((p) => {
-        if (p.completedPhases.length) {
-          const { moveToNextPhase, points } = p.completedPhases[p.completedPhases.length - 1];
+    Object.values(players).forEach((p) => {
+      if (p.completedPhases.length) {
+        const { moveToNextPhase, points } = p.completedPhases[p.completedPhases.length - 1];
 
-          if (moveToNextPhase) { // If player has moved up, move back down
-            newValues[p.name].currentPhase--;
-          }
-          // Remove points
-          newValues[p.name].points -= points;
-
-          // Remove completed phase
-          newValues[p.name].completedPhases.pop();
+        if (moveToNextPhase) { // If player has moved up, move back down
+          newValues[p.name].currentPhase--;
         }
-      });
+        // Remove points
+        newValues[p.name].points -= points;
+
+        // Remove completed phase
+        newValues[p.name].completedPhases.pop();
+      }
       return newValues;
     });
+
+    proxySetPlayers(newValues);
+
   }
 
   // Generates map {"phase" => [...playersInThatPhase]}
   const playersByPhase = React.useMemo(() => {
+    /** @type {Record<string, Player[]>} */
     const result = {};
-    Object.values(players).forEach(p => result[p.currentPhase] = [...(result[p.currentPhase] || []), p.name]);
+    Object.values(players).forEach(p => {
+      result[p.currentPhase] = [...(result[p.currentPhase] || []), p]
+    });
 
     return result;
   }, [players]);
 
   // Show revert button if at least one player is above phase 1
-  const showRevertButton = Object.keys(playersByPhase).some(phase => phase > 1);
+  const showRevertButton = Object.keys(playersByPhase).some(phase => Number(phase) > 1);
 
   // List of phases with players that are in it
   const phasesSection = (
     <section >
       <h2>
         Phases
-       {showRevertButton ?
+        {showRevertButton ?
           <button className="small float-right" onClick={handleRevertPhase}>Back 1 phase</button> :
           null}
       </h2>
-      <ol className="inline-block text-left w-full">
+      <ol className="inline-block w-full text-left">
         {phases.map((p, index) => (
-          <li key={index} className="border border-solid	border-gray-300	 rounded px-6 py-4 mb-2 flex bg-blue-50">
-            <span className="mr-4 opacity-70 self-center	">{index + 1}.</span>
-            <span className="flex-1  flex justify-between items-center">
-              <div className="flex flex-col	">
+          <li key={index} className="mb-2 flex rounded border border-solid border-gray-300 bg-blue-50 px-6 py-4">
+            <span className="mr-4 self-center opacity-70">{index + 1}.</span>
+            <span className="flex flex-1 items-center justify-between">
+              <div className="flex flex-col">
                 {p.split(' + ').map((part, index) => (
                   <span key={index}>{part}</span>
                 ))}
               </div>
-              <div className="font-bold ml-4 text-right self-center	">
-                {(playersByPhase[index + 1] || []).map(name => (<div key={name}>{name}</div>))}
+              <div className="ml-4 self-center text-right font-bold">
+                {(playersByPhase[index + 1] || []).map(p => (<div key={p.name}>{p.name} ({p.points})</div>))}
               </div>
             </span>
           </li>
@@ -104,25 +157,16 @@ export default function Home() {
       </ol>
     </section>);
 
+  function handleReset() {
+    if (confirm('Are you sure you want to reset the game?')) {
+      proxySetPhases([]);
+      proxySetPlayers({});
+    }
+  }
 
-  // List of scores
-  const scoresSection = (
-    <section>
-      <h2>Scores</h2>
-      <table>
-        <tbody>
-          {Object.values(players).map((p) => (
-            <tr key={p.name}>
-              <td><b>{p.name}</b></td>
-              <td> {p.points} pts</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>);
 
   return (
-    <div className="font-sans max-w-xs mx-auto mt-12" >
+    <div className="mx-auto mt-12 max-w-xs font-sans" >
       <Head>
         <title>Phase 10</title>
         <link rel="icon" href="/favicon.ico" />
@@ -134,12 +178,13 @@ export default function Home() {
         <h1> Phase 10 </h1>
       </header>
       <main>
+
         {!phases.length ?
           <PreGameForm onStartGame={handleStartGame} /> :
           <>
             {phasesSection}
-            <EndPhaseSection players={players} onEndPhase={handleEndPhase} />
-            {scoresSection}
+            <EndPhaseSection players={players} onEndPhase={handleEndPhase} onReset={handleReset} />
+
           </>}
       </main>
     </div>)

@@ -1,9 +1,9 @@
-import React from 'react';
+import * as React from 'react';
 import { useForm } from "react-hook-form";
 
 
 // Form to end phase (points, who made it)
-export function EndPhaseSection({ players, onEndPhase }) {
+export function EndPhaseSection({ players, onEndPhase, onReset }) {
     // const [formData, setFormData] = React.useState(initFormData);
     const { register, handleSubmit, watch, reset } = useForm();
 
@@ -19,7 +19,11 @@ export function EndPhaseSection({ players, onEndPhase }) {
 
     return (
         <section>
-            <h2>End of phase</h2>
+            <div className="flex items-center gap-4">
+                <h2>End of phase</h2>
+                <button className="small bg-red-500 hover:bg-red-600" onClick={onReset}>Reset</button>
+            </div>
+
             <form onSubmit={handleSubmit(handleEndPhase)}>
                 <table className="w-full">
                     <thead>
@@ -44,8 +48,7 @@ export function EndPhaseSection({ players, onEndPhase }) {
                     </tbody>
                 </table>
 
-                <button type="submit" className="primary w-full mt-4" disabled={submitDisabled}>End phase</button>
+                <button type="submit" className="primary mt-4 w-full" disabled={submitDisabled}>End phase</button>
             </form>
         </section>)
 }
-
