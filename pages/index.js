@@ -62,7 +62,7 @@ export default function Home() {
   /**
    * Starting the game
    */
-  const handleStartGame = React.useCallback(/** @type {(playerName:string[], phasesCount:number)=>void}*/((playerNames, phasesCount) => {
+  const handleStartGame = /** @type {(playerName:string[], phasesCount:number)=>void}*/((playerNames, phasesCount) => {
     const phases = generateNPhases(phasesCount);
     proxySetPhases(phases);
 
@@ -70,13 +70,13 @@ export default function Home() {
     const players = {};
     playerNames.forEach(name => players[name] = { name, points: 0, currentPhase: 1, completedPhases: [] });
     proxySetPlayers(players);
-  }), []);
+  });
   /**
    * End a phase: update players scores and current phase
    */
-  const handleEndPhase = React.useCallback(/**@type {(phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void}*/((phaseData) => {
+  const handleEndPhase = /**@type {(phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void}*/((phaseData) => {
 
-    const newValues = { ...players };
+    const newValues = structuredClone(players);
 
     Object.values(players).forEach((p) => {
       const { moveToNextPhase, points } = phaseData[p.name];
@@ -88,12 +88,13 @@ export default function Home() {
 
       newValues[p.name].completedPhases.push({ moveToNextPhase, points });
     });
+
     proxySetPlayers(newValues);
-  }), []);
+  });
 
   /** Un-apply last phase */
   const handleRevertPhase = () => {
-    const newValues = { ...players };
+    const newValues = structuredClone(players);
 
     Object.values(players).forEach((p) => {
       if (p.completedPhases.length) {
@@ -163,7 +164,6 @@ export default function Home() {
       proxySetPlayers({});
     }
   }
-
 
   return (
     <div className="mx-auto mt-12 max-w-xs font-sans" >
