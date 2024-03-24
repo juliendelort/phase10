@@ -5,7 +5,7 @@ export function getLocalStorage() {
 
     if (stringData) {
         try {
-            const { playersNames, phasesCount } = JSON.parse(stringData);
+            const { playersNames, phasesCount } = /** @type {{playersNames: string[], phasesCount: number}} */(JSON.parse(stringData));
             if (playersNames && phasesCount) {
                 return { playersNames, phasesCount };
             }
@@ -16,6 +16,11 @@ export function getLocalStorage() {
     return null;
 }
 
+/**
+ * 
+ * @param {string[]} playersNames 
+ * @param {number} phasesCount 
+ */
 export function setLocalStorage(playersNames, phasesCount) {
     if (typeof window !== "undefined") {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({

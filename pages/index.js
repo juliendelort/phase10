@@ -15,7 +15,7 @@ import { EndPhaseSection } from '../components/EndPhaseSection';
 const localStorageKey = 'phase10-game';
 
 function readLocalStorage() {
-  const defaultValue = { phases: [], players: {} };
+  const defaultValue = { phases:/** @type {string[]} */ ([]), players:/** @type {Record<string, Player>} */ ({}) };
   if (typeof window === 'undefined') {
     return defaultValue
   }
@@ -37,9 +37,13 @@ function writeLocalStorage(gameData) {
 }
 
 export default function Home() {
-  const [phases, setPhases] = React.useState(() => readLocalStorage().phases);
+  const [phases, setPhases] = React.useState(/**@type {string[]}*/([]));
+  const [players, setPlayers] = React.useState(/**@type {Record<string, Player>}*/({}));
 
-  const [players, setPlayers] = React.useState(() => readLocalStorage().players);
+  React.useEffect(() => {
+    setPhases(readLocalStorage().phases);
+    setPlayers(readLocalStorage().players);
+  }, []);
 
   /**
    * 
@@ -51,8 +55,8 @@ export default function Home() {
   }
 
   /**
-   * 
-   * @param {Record<string, Player>} players 
+   *
+   * @param {Record<string, Player>} players
    */
   function proxySetPlayers(players) {
     writeLocalStorage({ players });
@@ -61,8 +65,9 @@ export default function Home() {
 
   /**
    * Starting the game
+   * @type {(playerName:string[], phasesCount:number)=>void}
    */
-  const handleStartGame = /** @type {(playerName:string[], phasesCount:number)=>void}*/((playerNames, phasesCount) => {
+  const handleStartGame = (playerNames, phasesCount) => {
     const phases = generateNPhases(phasesCount);
     proxySetPhases(phases);
 
@@ -70,62 +75,53 @@ export default function Home() {
     const players = {};
     playerNames.forEach(name => players[name] = { name, points: 0, currentPhase: 1, completedPhases: [] });
     proxySetPlayers(players);
-  });
+  }
+
   /**
    * End a phase: update players scores and current phase
+   * @type {(phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void}
    */
-  const handleEndPhase = /**@type {(phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void}*/((phaseData) => {
+  const handleEndPhase = (phaseData) => {
+    proxySetPlayers(Object.keys(players).reduce((acc, name) => {
+      /** @type {Player} */
+      const player = players[name];
 
-    const newValues = structuredClone(players);
-
-    Object.values(players).forEach((p) => {
-      const { moveToNextPhase, points } = phaseData[p.name];
-
-      if (moveToNextPhase) {
-        newValues[p.name].currentPhase++;
-      }
-      newValues[p.name].points += points;
-
-      newValues[p.name].completedPhases.push({ moveToNextPhase, points });
-    });
-
-    proxySetPlayers(newValues);
-  });
+      acc[name] = {
+        ...player,
+        currentPhase: player.currentPhase + (phaseData[name].moveToNextPhase ? 1 : 0),
+        points: player.points + phaseData[name].points,
+        completedPhases: [...player.completedPhases, { moveToNextPhase: phaseData[name].moveToNextPhase, points: phaseData[name].points }]
+      };
+      return acc;
+    },/** @type {Record<string, Player>}*/({})));
+  }
 
   /** Un-apply last phase */
   const handleRevertPhase = () => {
-    const newValues = structuredClone(players);
 
-    Object.values(players).forEach((p) => {
-      if (p.completedPhases.length) {
-        const { moveToNextPhase, points } = p.completedPhases[p.completedPhases.length - 1];
+    proxySetPlayers(Object.keys(players).reduce((acc, name) => {
+      /** @type {Player} */
+      const player = players[name];
+      const { moveToNextPhase, points } = player.completedPhases[player.completedPhases.length - 1];
 
-        if (moveToNextPhase) { // If player has moved up, move back down
-          newValues[p.name].currentPhase--;
-        }
-        // Remove points
-        newValues[p.name].points -= points;
-
-        // Remove completed phase
-        newValues[p.name].completedPhases.pop();
-      }
-      return newValues;
-    });
-
-    proxySetPlayers(newValues);
-
+      acc[name] = {
+        ...player,
+        completedPhases: player.completedPhases.slice(0, -1),
+        currentPhase: player.currentPhase - (moveToNextPhase ? 1 : 0),
+        points: player.points - points,
+      };
+      return acc;
+    },/** @type {Record<string, Player>}*/({})));
   }
 
   // Generates map {"phase" => [...playersInThatPhase]}
-  const playersByPhase = React.useMemo(() => {
-    /** @type {Record<string, Player[]>} */
-    const result = {};
-    Object.values(players).forEach(p => {
-      result[p.currentPhase] = [...(result[p.currentPhase] || []), p]
-    });
-
-    return result;
-  }, [players]);
+  const playersByPhase = Object.values(players).reduce((agg, p) => {
+    if (!agg[p.currentPhase]) {
+      agg[p.currentPhase] = [];
+    }
+    agg[p.currentPhase].push(p);
+    return agg;
+  },/** @type {Record<string, Player[]>} */({}));
 
   // Show revert button if at least one player is above phase 1
   const showRevertButton = Object.keys(playersByPhase).some(phase => Number(phase) > 1);
@@ -165,6 +161,9 @@ export default function Home() {
     }
   }
 
+  const finishedPlayers = Object.values(players).filter(p => p.currentPhase > phases.length);
+  const winner = finishedPlayers.length ? finishedPlayers.reduce((winner, p) => winner.points > p.points ? p : winner) : null;
+
   return (
     <div className="mx-auto mt-12 max-w-xs font-sans" >
       <Head>
@@ -179,11 +178,21 @@ export default function Home() {
       </header>
       <main>
 
-        {!phases.length ?
-          <PreGameForm onStartGame={handleStartGame} /> :
-          <>
+        {!phases.length
+          ? <PreGameForm onStartGame={handleStartGame} />
+          : <>
             {phasesSection}
-            <EndPhaseSection players={players} onEndPhase={handleEndPhase} onReset={handleReset} />
+            {winner
+              ? <>
+                <div className="font-bold"> 🎉🎉🎉 {winner.name} won!</div>
+                <ul className="list-none p-0">
+                  {Object.values(players).map(p => (
+                    <li key={p.name}><b>{p.name}</b>{finishedPlayers.some(finishedPlayer => p.name === finishedPlayer.name) ? ' (finished)' : ''}: {p.points} points</li>
+                  ))}
+                </ul>
+              </>
+              : <EndPhaseSection players={players} onEndPhase={handleEndPhase} onReset={handleReset} />
+            }
 
           </>}
       </main>

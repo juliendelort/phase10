@@ -1,79 +1,73 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { setLocalStorage, getLocalStorage } from '../utils/storage';
-import { useForm, useFieldArray } from "react-hook-form";
 
 
-// Inital form with name of players and number of phases
+/**  Inital form with name of players and number of phases
+ * @param {{onStartGame: (players: string[], phasesCount: number)=>void}} props
+ */
 export function PreGameForm({ onStartGame }) {
-    const { control, register, handleSubmit, reset, formState: { errors } } = useForm();
-
-    const { fields: playerFields, append: addPlayer } = useFieldArray({
-        control,
-        name: "players",
-    });
-
+    const [playersCount, setPlayersCount] = React.useState(2);
+    /** @type {React.RefObject<HTMLFormElement>} */
+    const formRef = useRef(null);
     React.useEffect(() => {
         const data = getLocalStorage();
 
-        if (!data) {
-            // No saved player, generate 2 default players with 3 phases
-            reset({
-                players: [{ name: '' }, { name: '' }],
-                phasesCount: 3
-            })
-        } else {
+        if (data) {
             const { playersNames, phasesCount } = data;
-
-            // Convert playerNames to players
-            reset({
-                players: playersNames.map(name => ({ name })),
-                phasesCount
-            });
+            setPlayersCount(playersNames.length);
+            if (formRef.current) {
+                formRef.current.phasesCount.value = phasesCount;
+                [...formRef.current.player].forEach((input, index) => {
+                    input.value = playersNames[index] || '';
+                });
+            }
         }
-    }, [reset])
+    }, [])
 
     const handleAddPlayer = () => {
-        addPlayer({ name: '' });
+        setPlayersCount(playersCount + 1);
     };
 
     /**
    * Submit initial player form: generate the phases and initialize game
+   * @param {React.FormEvent<HTMLFormElement>} e
    */
-    const handleStartGame = ({ players, phasesCount }) => {
+    const handleStartGame = (e) => {
+        e.preventDefault();
 
-        const playersNames = players.filter(p => !!p.name).map(p => p.name);
+        const formData = new FormData(e.currentTarget);
 
-        const uniqueNamesNonEmpty = [...new Set(playersNames)].filter(n => !!n);
+        const players = Array.from(new Set(/** @type {string[]} */(formData.getAll('player')).filter(p => !!p)));
+        const phasesCount = parseInt(/** @type {string} */(formData.get('phasesCount')));
 
-        if (uniqueNamesNonEmpty.length < 2) {
-            alert('At least 2 unique player names are required!')
-        } else {
-            // Save & start game
-            setLocalStorage(uniqueNamesNonEmpty, phasesCount);
-            onStartGame(uniqueNamesNonEmpty, phasesCount);
+        if (players.length < 2) {
+            alert('At least 2 unique player names are required!');
+            return;
         }
+
+        setLocalStorage(players, phasesCount);
+        onStartGame(players, phasesCount);
     };
 
     return (
         <>
-            <form onSubmit={handleSubmit(handleStartGame)} className="inline-block">
+            <form onSubmit={handleStartGame} className="inline-block" ref={formRef}>
                 <label>
                     <span>Phases</span>
-                    <input type="number" min="1" placeholder="3" {...register('phasesCount', { required: true, min: 1, valueAsNumber: true })} />
+                    <input type="number" min="1" placeholder="3" name="phasesCount" required defaultValue={3} />
                 </label>
 
                 <div className="my-4">
-                    {playerFields.map((p, index) => (
-                        <label key={p.id} className="mb-2">
+                    {Array(playersCount).fill(0).map((_p, index) => (
+                        <label key={index} className="mb-2">
                             <span>{`Player ${index}`}</span>
-                            <input type="text" placeholder="Enter a name" defaultValue={p.name} {...register(`players.${index}.name`)} />
+                            <input type="text" placeholder="Enter a name" name="player" />
                         </label>
                     ))}
-                    <button type="button" onClick={handleAddPlayer} className="small mb-4 float-right">Add player</button>
+                    <button type="button" onClick={handleAddPlayer} className="small float-right mb-4">Add player</button>
                 </div>
-                <button className="block w-full primary" type="submit">Start game</button>
+                <button className="primary block w-full" type="submit">Start game</button>
             </form>
-            {errors.phasesCount && <span role="alert" className="block text-red-600 text-sm mt-4">Phases count is required with a minimum of 1!</span>}
         </>
     )
 };

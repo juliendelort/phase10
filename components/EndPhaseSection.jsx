@@ -1,21 +1,34 @@
 import * as React from 'react';
-import { useForm } from "react-hook-form";
 
 
-// Form to end phase (points, who made it)
+/**
+ * Form to end phase (points, who made it)
+ * @param {{
+ *  players: Record<string, import('../pages/index').Player>
+ *  onEndPhase: (phaseData: Record<string, {moveToNextPhase:Boolean, points: number}>)=>void
+ *  onReset: () => void
+ * }} param0 
+ * @returns 
+ */
 export function EndPhaseSection({ players, onEndPhase, onReset }) {
-    // const [formData, setFormData] = React.useState(initFormData);
-    const { register, handleSubmit, watch, reset } = useForm();
 
-    const handleEndPhase = (data) => {
-        reset();
-        onEndPhase({ ...data });
+    /**
+     * 
+     * @param {React.FormEvent<HTMLFormElement>} e 
+     */
+    const handleEndPhase = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+
+        onEndPhase(Object.keys(players).reduce((acc, name) => {
+            acc[name] = {
+                moveToNextPhase: !!formData.get(`${name}-moveToNextPhase`),
+                points: parseInt(/** @type {string} */(formData.get(`${name}-points`) || '0'))
+            };
+            return acc;
+        }, /** @type {Record<string, {moveToNextPhase:Boolean, points: number}>} */({})));
     };
 
-    const watchAllFields = watch(); // when pass nothing as argument, you are watching everything
-
-    // Disabled if no "move to next phase" checkbox is checked
-    const submitDisabled = !Object.values(watchAllFields).some(p => p.moveToNextPhase);
 
     return (
         <section>
@@ -24,7 +37,7 @@ export function EndPhaseSection({ players, onEndPhase, onReset }) {
                 <button className="small bg-red-500 hover:bg-red-600" onClick={onReset}>Reset</button>
             </div>
 
-            <form onSubmit={handleSubmit(handleEndPhase)}>
+            <form onSubmit={handleEndPhase}>
                 <table className="w-full">
                     <thead>
                         <tr>
@@ -38,17 +51,17 @@ export function EndPhaseSection({ players, onEndPhase, onReset }) {
                             <tr key={p.name}>
                                 <td>{p.name}</td>
                                 <td className="text-center">
-                                    <input type="checkbox" {...register(`${p.name}[moveToNextPhase]`)} aria-label="made it" />
+                                    <input type="checkbox" name={`${p.name}-moveToNextPhase`} aria-label="made it" />
                                 </td>
                                 <td className="w-16 text-center">
-                                    <input type="number" min="0"  {...register(`${p.name}[points]`, { setValueAs: v => v ? parseInt(v) : 0 })} arial-label="score" className="w-16" />
+                                    <input type="number" min="0" name={`${p.name}-points`} arial-label="score" className="w-16" />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                <button type="submit" className="primary mt-4 w-full" disabled={submitDisabled}>End phase</button>
+                <button type="submit" className="primary mt-4 w-full">End phase</button>
             </form>
         </section>)
 }
