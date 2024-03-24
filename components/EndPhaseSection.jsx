@@ -19,6 +19,7 @@ export function EndPhaseSection({ players, onEndPhase, onReset }) {
     const handleEndPhase = (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        e.currentTarget.reset();
 
         onEndPhase(Object.keys(players).reduce((acc, name) => {
             acc[name] = {

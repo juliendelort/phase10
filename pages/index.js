@@ -164,6 +164,10 @@ export default function Home() {
   const finishedPlayers = Object.values(players).filter(p => p.currentPhase > phases.length);
   const winner = finishedPlayers.length ? finishedPlayers.reduce((winner, p) => winner.points > p.points ? p : winner) : null;
 
+  const handleRestart = () => {
+    handleStartGame(Object.keys(players), phases.length);
+  }
+
   return (
     <div className="mx-auto mt-12 max-w-xs font-sans" >
       <Head>
@@ -190,6 +194,8 @@ export default function Home() {
                     <li key={p.name}><b>{p.name}</b>{finishedPlayers.some(finishedPlayer => p.name === finishedPlayer.name) ? ' (finished)' : ''}: {p.points} points</li>
                   ))}
                 </ul>
+                <button className="primary mt-4 w-full" onClick={handleRestart}>Restart</button>
+
               </>
               : <EndPhaseSection players={players} onEndPhase={handleEndPhase} onReset={handleReset} />
             }
